@@ -1,0 +1,410 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>联邦学习初见（二） | 摸鱼端の秘密基地</title><meta name="author" content="gggaaallleee"><meta name="copyright" content="gggaaallleee"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="参考实现：https:&#x2F;&#x2F;github.com&#x2F;shaoxiongji&#x2F;federated-learning 首先给出FedAVG的目录接着下面逐步解析其中的作用 data在此同样使用MNIST数据集 MNIST是一个大型手写数字数据库，常用于训练各种图像处理系统。它包含60,000个训练样本和10,000个测试样本，每个样本是一个28x28像素的灰度图像，表示从0到9的手写数字。MNIST数据集">
+<meta property="og:type" content="article">
+<meta property="og:title" content="联邦学习初见（二）">
+<meta property="og:url" content="https://gggaaalleeee.top/2024/08/17/Fedavg/index.html">
+<meta property="og:site_name" content="摸鱼端の秘密基地">
+<meta property="og:description" content="参考实现：https:&#x2F;&#x2F;github.com&#x2F;shaoxiongji&#x2F;federated-learning 首先给出FedAVG的目录接着下面逐步解析其中的作用 data在此同样使用MNIST数据集 MNIST是一个大型手写数字数据库，常用于训练各种图像处理系统。它包含60,000个训练样本和10,000个测试样本，每个样本是一个28x28像素的灰度图像，表示从0到9的手写数字。MNIST数据集">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gggaaalleeee.top/image/cover/1.jpg">
+<meta property="article:published_time" content="2024-08-17T01:06:46.000Z">
+<meta property="article:modified_time" content="2024-08-17T05:02:36.968Z">
+<meta property="article:author" content="gggaaallleee">
+<meta property="article:tag" content="联邦学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gggaaalleeee.top/image/cover/1.jpg"><link rel="shortcut icon" href="/image/shark.png"><link rel="canonical" href="https://gggaaalleeee.top/2024/08/17/Fedavg/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '联邦学习初见（二）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-08-17 13:02:36'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-categories-card@1.0.0/lib/categorybar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (false) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/image/avatar.jpg" onerror="onerror=null;src='null'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/novel/"><i class="fa-fw fas fa-book"></i><span> 小说</span></a></li><li><a class="site-page child" href="/Roleplay/"><i class="fa-fw fas fa-cube"></i><span> 跑团</span></a></li><li><a class="site-page child" href="/math/"><i class="fa-fw fas fa-heart"></i><span> 数模</span></a></li><li><a class="site-page child" href="/project/"><i class="fa-fw fa fa-cogs"></i><span> 项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/image/cover/1.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="摸鱼端の秘密基地"><span class="site-name">摸鱼端の秘密基地</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/novel/"><i class="fa-fw fas fa-book"></i><span> 小说</span></a></li><li><a class="site-page child" href="/Roleplay/"><i class="fa-fw fas fa-cube"></i><span> 跑团</span></a></li><li><a class="site-page child" href="/math/"><i class="fa-fw fas fa-heart"></i><span> 数模</span></a></li><li><a class="site-page child" href="/project/"><i class="fa-fw fa fa-cogs"></i><span> 项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">联邦学习初见（二）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-17T01:06:46.000Z" title="发表于 2024-08-17 09:06:46">2024-08-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-08-17T05:02:36.968Z" title="更新于 2024-08-17 13:02:36">2024-08-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0/">学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="联邦学习初见（二）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>参考实现：<a target="_blank" rel="noopener" href="https://github.com/shaoxiongji/federated-learning">https://github.com/shaoxiongji/federated-learning</a></p>
+<p>首先给出FedAVG的目录<br><img src="/image/fedavg/1.png" alt="目录"><br>接着下面逐步解析其中的作用</p>
+<h1 id="data"><a href="#data" class="headerlink" title="data"></a>data</h1><p>在此同样使用MNIST数据集</p>
+<p>MNIST是一个大型手写数字数据库，常用于训练各种图像处理系统。它包含60,000个训练样本和10,000个测试样本，每个样本是一个28x28像素的灰度图像，表示从0到9的手写数字。MNIST数据集是机器学习和计算机视觉领域的经典数据集，常用于图像分类和模式识别任务。</p>
+<h1 id="models"><a href="#models" class="headerlink" title="models"></a>models</h1><h2 id="Fed-py"><a href="#Fed-py" class="headerlink" title="Fed.py"></a>Fed.py</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">FedAvg</span>(<span class="params">w</span>):</span><br><span class="line">    w_avg = copy.deepcopy(w[<span class="number">0</span>]) <span class="comment">#深拷贝</span></span><br><span class="line">    <span class="keyword">for</span> k <span class="keyword">in</span> w_avg.keys():</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(w)): </span><br><span class="line">            w_avg[k] += w[i][k] </span><br><span class="line">        w_avg[k] = torch.div(w_avg[k], <span class="built_in">len</span>(w)) </span><br><span class="line">    <span class="keyword">return</span> w_avg</span><br></pre></td></tr></table></figure>
+<p>首先是非常好理解的一个函数代码，就是对于每一个参数，计算所有客户端的参数的平均值，不过格式上可能需要理解，如下样例所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">w1 = &#123;<span class="string">&#x27;layer1&#x27;</span>: torch.tensor([<span class="number">1.0</span>, <span class="number">2.0</span>]), <span class="string">&#x27;layer2&#x27;</span>: torch.tensor([<span class="number">3.0</span>, <span class="number">4.0</span>])&#125;</span><br><span class="line">w2 = &#123;<span class="string">&#x27;layer1&#x27;</span>: torch.tensor([<span class="number">2.0</span>, <span class="number">3.0</span>]), <span class="string">&#x27;layer2&#x27;</span>: torch.tensor([<span class="number">4.0</span>, <span class="number">5.0</span>])&#125;</span><br><span class="line">w3 = &#123;<span class="string">&#x27;layer1&#x27;</span>: torch.tensor([<span class="number">3.0</span>, <span class="number">4.0</span>]), <span class="string">&#x27;layer2&#x27;</span>: torch.tensor([<span class="number">5.0</span>, <span class="number">6.0</span>])&#125;</span><br><span class="line">w = [w1, w2, w3]</span><br><span class="line">w_avg = FedAvg(w)</span><br><span class="line"><span class="built_in">print</span>(w_avg)</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&#x27;layer1&#x27;</span>: tensor([<span class="number">2.0</span>, <span class="number">3.0</span>]),</span><br><span class="line">    <span class="string">&#x27;layer2&#x27;</span>: tensor([<span class="number">4.0</span>, <span class="number">5.0</span>])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Nets-py"><a href="#Nets-py" class="headerlink" title="Nets.py"></a>Nets.py</h2><p>在此给出了三个神经网络结构，MLP、CNNMnist 和 CNNCifar，不过本文仅仅分析Mnist，所以Cifar姑且不谈，以下是每个类的简要说明：</p>
+<ol>
+<li><p>**MLP (多层感知器)**：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MLP</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, dim_in, dim_hidden, dim_out</span>):</span><br><span class="line">        <span class="built_in">super</span>(MLP, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.layer_input = nn.Linear(dim_in, dim_hidden)</span><br><span class="line">        <span class="variable language_">self</span>.relu = nn.ReLU()</span><br><span class="line">        <span class="variable language_">self</span>.dropout = nn.Dropout()</span><br><span class="line">        <span class="variable language_">self</span>.layer_hidden = nn.Linear(dim_hidden, dim_out)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = x.view(-<span class="number">1</span>, x.shape[<span class="number">1</span>]*x.shape[-<span class="number">2</span>]*x.shape[-<span class="number">1</span>])</span><br><span class="line">        x = <span class="variable language_">self</span>.layer_input(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.dropout(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.relu(x)</span><br><span class="line">        x = <span class="variable language_">self</span>.layer_hidden(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p>结构可以概述为</p>
+<table>
+<thead>
+<tr>
+<th>层类型</th>
+<th>输入维度</th>
+<th>输出维度</th>
+<th>激活函数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入层</td>
+<td>dim_in</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>全连接层</td>
+<td>dim_in</td>
+<td>dim_hidden</td>
+<td></td>
+</tr>
+<tr>
+<td>ReLU 激活函数</td>
+<td></td>
+<td></td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>Dropout 层</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>全连接层</td>
+<td>dim_hidden</td>
+<td>dim_out</td>
+<td></td>
+</tr>
+<tr>
+<td>输出层</td>
+<td>dim_out</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</li>
+<li><p>**CNNMnist (用于 MNIST 数据集的卷积神经网络)**：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CNNMnist</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, args</span>):</span><br><span class="line">        <span class="built_in">super</span>(CNNMnist, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.conv1 = nn.Conv2d(args.num_channels, <span class="number">10</span>, kernel_size=<span class="number">5</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv2 = nn.Conv2d(<span class="number">10</span>, <span class="number">20</span>, kernel_size=<span class="number">5</span>)</span><br><span class="line">        <span class="variable language_">self</span>.conv2_drop = nn.Dropout2d()</span><br><span class="line">        <span class="variable language_">self</span>.fc1 = nn.Linear(<span class="number">320</span>, <span class="number">50</span>)</span><br><span class="line">        <span class="variable language_">self</span>.fc2 = nn.Linear(<span class="number">50</span>, args.num_classes)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = F.relu(F.max_pool2d(<span class="variable language_">self</span>.conv1(x), <span class="number">2</span>))</span><br><span class="line">        x = F.relu(F.max_pool2d(<span class="variable language_">self</span>.conv2_drop(<span class="variable language_">self</span>.conv2(x)), <span class="number">2</span>))</span><br><span class="line">        x = x.view(-<span class="number">1</span>, x.shape[<span class="number">1</span>]*x.shape[<span class="number">2</span>]*x.shape[<span class="number">3</span>])</span><br><span class="line">        x = F.relu(<span class="variable language_">self</span>.fc1(x))</span><br><span class="line">        x = F.dropout(x, training=<span class="variable language_">self</span>.training)</span><br><span class="line">        x = <span class="variable language_">self</span>.fc2(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p>结构可以概述为</p>
+<table>
+<thead>
+<tr>
+<th>层类型</th>
+<th>输入维度</th>
+<th>输出维度</th>
+<th>激活函数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入层</td>
+<td>(args.num_channels, H, W)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>卷积层1</td>
+<td>(args.num_channels, H, W)</td>
+<td>(10, H-4, W-4)</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>最大池化层1</td>
+<td>(10, H-4, W-4)</td>
+<td>(10, (H-4)&#x2F;2, (W-4)&#x2F;2)</td>
+<td></td>
+</tr>
+<tr>
+<td>卷积层2</td>
+<td>(10, (H-4)&#x2F;2, (W-4)&#x2F;2)</td>
+<td>(20, (H-8)&#x2F;2, (W-8)&#x2F;2)</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>Dropout 层</td>
+<td>(20, (H-8)&#x2F;2, (W-8)&#x2F;2)</td>
+<td>(20, (H-8)&#x2F;2, (W-8)&#x2F;2)</td>
+<td></td>
+</tr>
+<tr>
+<td>最大池化层2</td>
+<td>(20, (H-8)&#x2F;2, (W-8)&#x2F;2)</td>
+<td>(20, (H-8)&#x2F;4, (W-8)&#x2F;4)</td>
+<td></td>
+</tr>
+<tr>
+<td>全连接层1</td>
+<td>320</td>
+<td>50</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>Dropout 层</td>
+<td>50</td>
+<td>50</td>
+<td></td>
+</tr>
+<tr>
+<td>全连接层2</td>
+<td>50</td>
+<td>args.num_classes</td>
+<td></td>
+</tr>
+<tr>
+<td>输出层</td>
+<td>args.num_classes</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>其中，H 是输入图像的高度，W 是输入图像的宽度，args.num_channels 是输入图像的通道数（例如，对于RGB图像，args.num_channels 通常是3）</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<h2 id="test-py"><a href="#test-py" class="headerlink" title="test.py"></a>test.py</h2><p>顾名思义，评估模型在测试集上的表现</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test_img</span>(<span class="params">net_g, datatest, args</span>):</span><br><span class="line">    net_g.<span class="built_in">eval</span>() <span class="comment">#评估模式</span></span><br><span class="line">    test_loss = <span class="number">0</span></span><br><span class="line">    correct = <span class="number">0</span></span><br><span class="line">    data_loader = DataLoader(datatest, batch_size=args.bs) <span class="comment">#加载测试集</span></span><br><span class="line">    <span class="keyword">for</span> idx, (data, target) <span class="keyword">in</span> <span class="built_in">enumerate</span>(data_loader):</span><br><span class="line">        <span class="keyword">if</span> args.gpu != -<span class="number">1</span>:</span><br><span class="line">            data, target = data.cuda(), target.cuda() <span class="comment">#数据加载到GPU</span></span><br><span class="line">        log_probs = net_g(data) <span class="comment">#前向传播</span></span><br><span class="line">        test_loss += F.cross_entropy(log_probs, target, reduction=<span class="string">&#x27;sum&#x27;</span>).item()  <span class="comment">#计算并累加当前批次的交叉熵损失</span></span><br><span class="line">        y_pred = log_probs.data.<span class="built_in">max</span>(<span class="number">1</span>, keepdim=<span class="literal">True</span>)[<span class="number">1</span>] <span class="comment">#找到概率最大的类别</span></span><br><span class="line">        correct += y_pred.eq(target.data.view_as(y_pred)).long().cpu().<span class="built_in">sum</span>() <span class="comment">#计算正确率</span></span><br><span class="line"></span><br><span class="line">    test_loss /= <span class="built_in">len</span>(data_loader.dataset)</span><br><span class="line">    accuracy = <span class="number">100.00</span> * correct / <span class="built_in">len</span>(data_loader.dataset)</span><br><span class="line">    <span class="keyword">if</span> args.verbose:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;\nTest set: Average loss: &#123;:.4f&#125; \nAccuracy: &#123;&#125;/&#123;&#125; (&#123;:.2f&#125;%)\n&#x27;</span>.<span class="built_in">format</span>(</span><br><span class="line">            test_loss, correct, <span class="built_in">len</span>(data_loader.dataset), accuracy))</span><br><span class="line">    <span class="keyword">return</span> accuracy, test_loss</span><br></pre></td></tr></table></figure>
+<h2 id="Update-py"><a href="#Update-py" class="headerlink" title="Update.py"></a>Update.py</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">DatasetSplit</span>(<span class="title class_ inherited__">Dataset</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, dataset, idxs</span>):</span><br><span class="line">        <span class="variable language_">self</span>.dataset = dataset</span><br><span class="line">        <span class="variable language_">self</span>.idxs = <span class="built_in">list</span>(idxs)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__len__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">len</span>(<span class="variable language_">self</span>.idxs)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__getitem__</span>(<span class="params">self, item</span>):</span><br><span class="line">        image, label = <span class="variable language_">self</span>.dataset[<span class="variable language_">self</span>.idxs[item]]</span><br><span class="line">        <span class="keyword">return</span> image, label</span><br></pre></td></tr></table></figure>
+<p>可以根据索引划分数据集并创建相应的训练集和验证集</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LocalUpdate</span>(<span class="title class_ inherited__">object</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, args, dataset=<span class="literal">None</span>, idxs=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.args = args</span><br><span class="line">        <span class="variable language_">self</span>.loss_func = nn.CrossEntropyLoss() <span class="comment"># 损失函数为交叉熵损失</span></span><br><span class="line">        <span class="variable language_">self</span>.selected_clients = [] <span class="comment"># 选择的客户端</span></span><br><span class="line">        <span class="variable language_">self</span>.ldr_train = DataLoader(DatasetSplit(dataset, idxs), batch_size=<span class="variable language_">self</span>.args.local_bs, shuffle=<span class="literal">True</span>) <span class="comment"># 加载数据集</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">self, net</span>):</span><br><span class="line">        net.train()</span><br><span class="line">        <span class="comment"># train and update</span></span><br><span class="line">        optimizer = torch.optim.SGD(net.parameters(), lr=<span class="variable language_">self</span>.args.lr, momentum=<span class="variable language_">self</span>.args.momentum) <span class="comment"># 优化器为SGD</span></span><br><span class="line"></span><br><span class="line">        epoch_loss = []</span><br><span class="line">        <span class="keyword">for</span> <span class="built_in">iter</span> <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.args.local_ep):</span><br><span class="line">            batch_loss = []</span><br><span class="line">            <span class="keyword">for</span> batch_idx, (images, labels) <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="variable language_">self</span>.ldr_train):</span><br><span class="line">                images, labels = images.to(<span class="variable language_">self</span>.args.device), labels.to(<span class="variable language_">self</span>.args.device)</span><br><span class="line">                net.zero_grad()</span><br><span class="line">                log_probs = net(images)</span><br><span class="line">                loss = <span class="variable language_">self</span>.loss_func(log_probs, labels)</span><br><span class="line">                loss.backward()</span><br><span class="line">                optimizer.step()</span><br><span class="line">                <span class="keyword">if</span> <span class="variable language_">self</span>.args.verbose <span class="keyword">and</span> batch_idx % <span class="number">10</span> == <span class="number">0</span>:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&#x27;Update Epoch: &#123;&#125; [&#123;&#125;/&#123;&#125; (&#123;:.0f&#125;%)]\tLoss: &#123;:.6f&#125;&#x27;</span>.<span class="built_in">format</span>(</span><br><span class="line">                        <span class="built_in">iter</span>, batch_idx * <span class="built_in">len</span>(images), <span class="built_in">len</span>(<span class="variable language_">self</span>.ldr_train.dataset),</span><br><span class="line">                               <span class="number">100.</span> * batch_idx / <span class="built_in">len</span>(<span class="variable language_">self</span>.ldr_train), loss.item()))</span><br><span class="line">                batch_loss.append(loss.item())</span><br><span class="line">            epoch_loss.append(<span class="built_in">sum</span>(batch_loss)/<span class="built_in">len</span>(batch_loss))</span><br><span class="line">        <span class="keyword">return</span> net.state_dict(), <span class="built_in">sum</span>(epoch_loss) / <span class="built_in">len</span>(epoch_loss)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这个 <strong>LocalUpdate</strong> 类的 <strong>train</strong> 方法是比较基本的训练神经网络模型方法。</p>
+<ol>
+<li>首先将网络设置为训练模式，然后创建一个基于随机梯度下降（SGD）的优化器，并设置学习率和动量。</li>
+<li>接着，函数开始进行多个训练周期（由self.args.local_ep指定）。</li>
+<li>在每个训练周期中，函数遍历训练数据集的每个批次，将图像和标签数据移动到指定的设备上，然后清空网络的梯度，通过网络前向传播得到对数概率，计算损失函数，执行反向传播以计算梯度，并通过优化器更新网络的权重。</li>
+<li>在每个批次的训练过程中，如果设置了详细输出，并且当前批次是10的倍数，则打印出当前的训练进度和损失值。</li>
+<li>最后，函数记录每个周期的平均损失，并返回最终训练好的网络的参数状态字典以及所有周期的平均损失。</li>
+</ol>
+<h1 id="util"><a href="#util" class="headerlink" title="util"></a>util</h1><h2 id="options-py"><a href="#options-py" class="headerlink" title="options.py"></a>options.py</h2><p>超参数，姑且不表，help已经明示</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">args_parser</span>():</span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    <span class="comment"># federated arguments</span></span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--epochs&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">10</span>, <span class="built_in">help</span>=<span class="string">&quot;rounds of training&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--num_users&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">100</span>, <span class="built_in">help</span>=<span class="string">&quot;number of users: K&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--frac&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">float</span>, default=<span class="number">0.1</span>, <span class="built_in">help</span>=<span class="string">&quot;the fraction of clients: C&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--local_ep&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">5</span>, <span class="built_in">help</span>=<span class="string">&quot;the number of local epochs: E&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--local_bs&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">10</span>, <span class="built_in">help</span>=<span class="string">&quot;local batch size: B&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--bs&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">128</span>, <span class="built_in">help</span>=<span class="string">&quot;test batch size&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--lr&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">float</span>, default=<span class="number">0.01</span>, <span class="built_in">help</span>=<span class="string">&quot;learning rate&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--momentum&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">float</span>, default=<span class="number">0.5</span>, <span class="built_in">help</span>=<span class="string">&quot;SGD momentum (default: 0.5)&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--split&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, default=<span class="string">&#x27;user&#x27;</span>, <span class="built_in">help</span>=<span class="string">&quot;train-test split type, user or sample&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># model arguments</span></span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--model&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, default=<span class="string">&#x27;mlp&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;model name&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--kernel_num&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">9</span>, <span class="built_in">help</span>=<span class="string">&#x27;number of each kind of kernel&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--kernel_sizes&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, default=<span class="string">&#x27;3,4,5&#x27;</span>,</span><br><span class="line">                        <span class="built_in">help</span>=<span class="string">&#x27;comma-separated kernel size to use for convolution&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--norm&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, default=<span class="string">&#x27;batch_norm&#x27;</span>, <span class="built_in">help</span>=<span class="string">&quot;batch_norm, layer_norm, or None&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--num_filters&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">32</span>, <span class="built_in">help</span>=<span class="string">&quot;number of filters for conv nets&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--max_pool&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, default=<span class="string">&#x27;True&#x27;</span>,</span><br><span class="line">                        <span class="built_in">help</span>=<span class="string">&quot;Whether use max pooling rather than strided convolutions&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># other arguments</span></span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--dataset&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, default=<span class="string">&#x27;mnist&#x27;</span>, <span class="built_in">help</span>=<span class="string">&quot;name of dataset&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--iid&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;whether i.i.d or not&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--num_classes&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">10</span>, <span class="built_in">help</span>=<span class="string">&quot;number of classes&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--num_channels&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">3</span>, <span class="built_in">help</span>=<span class="string">&quot;number of channels of imges&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--gpu&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">0</span>, <span class="built_in">help</span>=<span class="string">&quot;GPU ID, -1 for CPU&quot;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--stopping_rounds&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">10</span>, <span class="built_in">help</span>=<span class="string">&#x27;rounds of early stopping&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--verbose&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;verbose print&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--seed&#x27;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">1</span>, <span class="built_in">help</span>=<span class="string">&#x27;random seed (default: 1)&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--all_clients&#x27;</span>, action=<span class="string">&#x27;store_true&#x27;</span>, <span class="built_in">help</span>=<span class="string">&#x27;aggregation over all clients&#x27;</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    <span class="keyword">return</span> args</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="sampling-py"><a href="#sampling-py" class="headerlink" title="sampling.py"></a>sampling.py</h2><p>主要是采样相关的函数，</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">mnist_iid</span>(<span class="params">dataset, num_users</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Sample I.I.D. client data from MNIST dataset</span></span><br><span class="line"><span class="string">    :param dataset:</span></span><br><span class="line"><span class="string">    :param num_users:</span></span><br><span class="line"><span class="string">    :return: dict of image index</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    num_items = <span class="built_in">int</span>(<span class="built_in">len</span>(dataset)/num_users)</span><br><span class="line">    dict_users, all_idxs = &#123;&#125;, [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(dataset))]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_users):</span><br><span class="line">        dict_users[i] = <span class="built_in">set</span>(np.random.choice(all_idxs, num_items, replace=<span class="literal">False</span>))</span><br><span class="line">        all_idxs = <span class="built_in">list</span>(<span class="built_in">set</span>(all_idxs) - dict_users[i])</span><br><span class="line">    <span class="keyword">return</span> dict_users</span><br></pre></td></tr></table></figure>
+<p>用于从MNIST数据集中为每个用户采样独立同分布（I.I.D.）的数据，具体是随机选择数据样本分配给每个用户，确保每个用户的数据样本是独立同分布的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">mnist_noniid</span>(<span class="params">dataset, num_users</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Sample non-I.I.D client data from MNIST dataset</span></span><br><span class="line"><span class="string">    :param dataset:</span></span><br><span class="line"><span class="string">    :param num_users:</span></span><br><span class="line"><span class="string">    :return:</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    num_shards, num_imgs = <span class="number">200</span>, <span class="number">300</span></span><br><span class="line">    idx_shard = [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_shards)]</span><br><span class="line">    dict_users = &#123;i: np.array([], dtype=<span class="string">&#x27;int64&#x27;</span>) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_users)&#125;</span><br><span class="line">    idxs = np.arange(num_shards*num_imgs)</span><br><span class="line">    labels = dataset.targets.numpy()  <span class="comment"># Updated line</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># sort labels</span></span><br><span class="line">    idxs_labels = np.vstack((idxs, labels))</span><br><span class="line">    idxs_labels = idxs_labels[:,idxs_labels[<span class="number">1</span>,:].argsort()]</span><br><span class="line">    idxs = idxs_labels[<span class="number">0</span>,:]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># divide and assign</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_users):</span><br><span class="line">        rand_set = <span class="built_in">set</span>(np.random.choice(idx_shard, <span class="number">2</span>, replace=<span class="literal">False</span>))</span><br><span class="line">        idx_shard = <span class="built_in">list</span>(<span class="built_in">set</span>(idx_shard) - rand_set)</span><br><span class="line">        <span class="keyword">for</span> rand <span class="keyword">in</span> rand_set:</span><br><span class="line">            dict_users[i] = np.concatenate((dict_users[i], idxs[rand*num_imgs:(rand+<span class="number">1</span>)*num_imgs]), axis=<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> dict_users</span><br></pre></td></tr></table></figure>
+<p>用于从MNIST数据集中为每个用户采样非独立同分布（Non-I.I.D.）的数据，具体是将数据集按标签排序并分片，然后将每个用户的数据样本限制在某几个片段内，确保每个用户的数据样本是非独立同分布的。</p>
+<h1 id="main-fed-py"><a href="#main-fed-py" class="headerlink" title="main_fed.py"></a>main_fed.py</h1><h2 id="解析参数"><a href="#解析参数" class="headerlink" title="解析参数"></a>解析参数</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">args = args_parser()</span><br><span class="line">args.device = torch.device(<span class="string">&#x27;cuda:&#123;&#125;&#x27;</span>.<span class="built_in">format</span>(args.gpu) <span class="keyword">if</span> torch.cuda.is_available() <span class="keyword">and</span> args.gpu != -<span class="number">1</span> <span class="keyword">else</span> <span class="string">&#x27;cpu&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="加载数据集并划分用户"><a href="#加载数据集并划分用户" class="headerlink" title="加载数据集并划分用户"></a>加载数据集并划分用户</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加载数据集并划分用户</span></span><br><span class="line"><span class="keyword">if</span> args.dataset == <span class="string">&#x27;mnist&#x27;</span>:</span><br><span class="line">    trans_mnist = transforms.Compose([transforms.ToTensor(), transforms.Normalize((<span class="number">0.1307</span>,), (<span class="number">0.3081</span>,))])</span><br><span class="line">    dataset_train = datasets.MNIST(<span class="string">&#x27;../data/mnist/&#x27;</span>, train=<span class="literal">True</span>, download=<span class="literal">True</span>, transform=trans_mnist)</span><br><span class="line">    dataset_test = datasets.MNIST(<span class="string">&#x27;../data/mnist/&#x27;</span>, train=<span class="literal">False</span>, download=<span class="literal">True</span>, transform=trans_mnist)</span><br><span class="line">    <span class="comment"># 采样用户</span></span><br><span class="line">    <span class="keyword">if</span> args.iid:</span><br><span class="line">        dict_users = mnist_iid(dataset_train, args.num_users)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        dict_users = mnist_noniid(dataset_train, args.num_users)</span><br></pre></td></tr></table></figure>
+<p>其中，iid参数决定是否是独立同分布采样</p>
+<h2 id="构建模型"><a href="#构建模型" class="headerlink" title="构建模型"></a>构建模型</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 构建模型</span></span><br><span class="line">    <span class="keyword">if</span> args.model == <span class="string">&#x27;cnn&#x27;</span> <span class="keyword">and</span> args.dataset == <span class="string">&#x27;cifar&#x27;</span>:</span><br><span class="line">        net_glob = CNNCifar(args=args).to(args.device)</span><br><span class="line">    <span class="keyword">elif</span> args.model == <span class="string">&#x27;cnn&#x27;</span> <span class="keyword">and</span> args.dataset == <span class="string">&#x27;mnist&#x27;</span>:</span><br><span class="line">        net_glob = CNNMnist(args=args).to(args.device)</span><br><span class="line">    <span class="keyword">elif</span> args.model == <span class="string">&#x27;mlp&#x27;</span>:</span><br><span class="line">        len_in = <span class="number">1</span></span><br><span class="line">        <span class="keyword">for</span> x <span class="keyword">in</span> img_size:</span><br><span class="line">            len_in *= x</span><br><span class="line">        net_glob = MLP(dim_in=len_in, dim_hidden=<span class="number">200</span>, dim_out=args.num_classes).to(args.device)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        exit(<span class="string">&#x27;Error: unrecognized model&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(net_glob)</span><br><span class="line">    net_glob.train()</span><br></pre></td></tr></table></figure>
+<h2 id="复制权重"><a href="#复制权重" class="headerlink" title="复制权重"></a>复制权重</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">w_glob = net_glob.state_dict()</span><br></pre></td></tr></table></figure>
+<h2 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">cv_loss, cv_acc = [], []</span><br><span class="line">val_loss_pre, counter = <span class="number">0</span>, <span class="number">0</span></span><br><span class="line">net_best = <span class="literal">None</span></span><br><span class="line">best_loss = <span class="literal">None</span></span><br><span class="line">val_acc_list, net_list = [], []</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> args.all_clients: </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Aggregation over all clients&quot;</span>)</span><br><span class="line">    w_locals = [w_glob <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(args.num_users)]</span><br><span class="line"><span class="keyword">for</span> <span class="built_in">iter</span> <span class="keyword">in</span> <span class="built_in">range</span>(args.epochs):</span><br><span class="line">    loss_locals = []</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> args.all_clients:</span><br><span class="line">        w_locals = []</span><br><span class="line">    m = <span class="built_in">max</span>(<span class="built_in">int</span>(args.frac * args.num_users), <span class="number">1</span>)</span><br><span class="line">    idxs_users = np.random.choice(<span class="built_in">range</span>(args.num_users), m, replace=<span class="literal">False</span>)</span><br><span class="line">    <span class="keyword">for</span> idx <span class="keyword">in</span> idxs_users:</span><br><span class="line">        local = LocalUpdate(args=args, dataset=dataset_train, idxs=dict_users[idx])</span><br><span class="line">        w, loss = local.train(net=copy.deepcopy(net_glob).to(args.device))</span><br><span class="line">        <span class="keyword">if</span> args.all_clients:</span><br><span class="line">            w_locals[idx] = copy.deepcopy(w)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            w_locals.append(copy.deepcopy(w))</span><br><span class="line">        loss_locals.append(copy.deepcopy(loss))</span><br><span class="line">    <span class="comment"># 更新全局权重</span></span><br><span class="line">    w_glob = FedAvg(w_locals)</span><br><span class="line">    <span class="comment"># 复制权重到 net_glob</span></span><br><span class="line">    net_glob.load_state_dict(w_glob)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 打印损失</span></span><br><span class="line">    loss_avg = <span class="built_in">sum</span>(loss_locals) / <span class="built_in">len</span>(loss_locals)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Round &#123;:3d&#125;, Average loss &#123;:.3f&#125;&#x27;</span>.<span class="built_in">format</span>(<span class="built_in">iter</span>, loss_avg))</span><br><span class="line">    loss_train.append(loss_avg)        </span><br></pre></td></tr></table></figure>
+
+<h2 id="绘制损失曲线"><a href="#绘制损失曲线" class="headerlink" title="绘制损失曲线"></a>绘制损失曲线</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">plt.figure()</span><br><span class="line">plt.plot(<span class="built_in">range</span>(<span class="built_in">len</span>(loss_train)), loss_train)</span><br><span class="line">plt.ylabel(<span class="string">&#x27;train_loss&#x27;</span>)</span><br><span class="line">plt.savefig(<span class="string">&#x27;./save/fed_&#123;&#125;_&#123;&#125;_&#123;&#125;_C&#123;&#125;_iid&#123;&#125;.png&#x27;</span>.<span class="built_in">format</span>(args.dataset, args.model, args.epochs, args.frac, args.iid))</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">net_glob.<span class="built_in">eval</span>()</span><br><span class="line">acc_train, loss_train = test_img(net_glob, dataset_train, args)</span><br><span class="line">acc_test, loss_test = test_img(net_glob, dataset_test, args)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Training accuracy: &#123;:.2f&#125;&quot;</span>.<span class="built_in">format</span>(acc_train))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Testing accuracy: &#123;:.2f&#125;&quot;</span>.<span class="built_in">format</span>(acc_test))</span><br></pre></td></tr></table></figure>
+
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>实验环境</p>
+<ul>
+<li><strong>PyTorch</strong>: <code>2.0.0</code></li>
+<li><strong>Python</strong>: <code>3.8 (ubuntu20.04)</code></li>
+<li><strong>Cuda</strong>: <code>11.8</code></li>
+<li><strong>GPU</strong>: <code>RTX 3090 (24GB) * 1</code></li>
+</ul>
+<p>实验指令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python main_fed.py --dataset mnist --iid --num_channels 1 --model mlp --epochs 50 --gpu 0 --all_clients</span><br></pre></td></tr></table></figure>
+<p>实验结果<br><img src="/image/fedavg/2.png" alt="结果图"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://gggaaalleeee.top">gggaaallleee</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://gggaaalleeee.top/2024/08/17/Fedavg/">https://gggaaalleeee.top/2024/08/17/Fedavg/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://gggaaalleeee.top" target="_blank">摸鱼端の秘密基地</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0/">联邦学习</a></div><div class="post_share"><div class="social-share" data-image="/image/cover/1.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/08/16/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0%E5%88%9D%E8%A7%81/" title="联邦学习初见（一）"><img class="cover" src="/image/cover/3.png" onerror="onerror=null;src='/null'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">联邦学习初见（一）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/08/16/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0%E5%88%9D%E8%A7%81/" title="联邦学习初见（一）"><img class="cover" src="/image/cover/3.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-16</div><div class="title">联邦学习初见（一）</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/image/avatar.jpg" onerror="this.onerror=null;this.src='/null'" alt="avatar"/></div><div class="author-info__name">gggaaallleee</div><div class="author-info__description">阳和启蛰，天雨流芳</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/gggaaallleee" target="_blank" title="Github"><i class="fab fa-github" style="color: #hdhfbb;"></i></a><a class="social-icon" href="mailto:202103151406@zjut.edu.cn" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #000000;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">摸鱼好文明</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#data"><span class="toc-number">1.</span> <span class="toc-text">data</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#models"><span class="toc-number">2.</span> <span class="toc-text">models</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Fed-py"><span class="toc-number">2.1.</span> <span class="toc-text">Fed.py</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nets-py"><span class="toc-number">2.2.</span> <span class="toc-text">Nets.py</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#test-py"><span class="toc-number">2.3.</span> <span class="toc-text">test.py</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Update-py"><span class="toc-number">2.4.</span> <span class="toc-text">Update.py</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#util"><span class="toc-number">3.</span> <span class="toc-text">util</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#options-py"><span class="toc-number">3.1.</span> <span class="toc-text">options.py</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sampling-py"><span class="toc-number">3.2.</span> <span class="toc-text">sampling.py</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#main-fed-py"><span class="toc-number">4.</span> <span class="toc-text">main_fed.py</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%E5%8F%82%E6%95%B0"><span class="toc-number">4.1.</span> <span class="toc-text">解析参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E6%95%B0%E6%8D%AE%E9%9B%86%E5%B9%B6%E5%88%92%E5%88%86%E7%94%A8%E6%88%B7"><span class="toc-number">4.2.</span> <span class="toc-text">加载数据集并划分用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.3.</span> <span class="toc-text">构建模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E5%88%B6%E6%9D%83%E9%87%8D"><span class="toc-number">4.4.</span> <span class="toc-text">复制权重</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83"><span class="toc-number">4.5.</span> <span class="toc-text">训练</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%98%E5%88%B6%E6%8D%9F%E5%A4%B1%E6%9B%B2%E7%BA%BF"><span class="toc-number">4.6.</span> <span class="toc-text">绘制损失曲线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-number">4.7.</span> <span class="toc-text">测试</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C"><span class="toc-number">5.</span> <span class="toc-text">实验</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/08/17/Fedavg/" title="联邦学习初见（二）"><img src="/image/cover/1.jpg" onerror="this.onerror=null;this.src='/null'" alt="联邦学习初见（二）"/></a><div class="content"><a class="title" href="/2024/08/17/Fedavg/" title="联邦学习初见（二）">联邦学习初见（二）</a><time datetime="2024-08-17T01:06:46.000Z" title="发表于 2024-08-17 09:06:46">2024-08-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/16/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0%E5%88%9D%E8%A7%81/" title="联邦学习初见（一）"><img src="/image/cover/3.png" onerror="this.onerror=null;this.src='/null'" alt="联邦学习初见（一）"/></a><div class="content"><a class="title" href="/2024/08/16/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0%E5%88%9D%E8%A7%81/" title="联邦学习初见（一）">联邦学习初见（一）</a><time datetime="2024-08-16T02:31:43.000Z" title="发表于 2024-08-16 10:31:43">2024-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/15/%E7%BB%83%E7%AC%94-1/" title="练笔-1"><img src="/image/cover/2.png" onerror="this.onerror=null;this.src='/null'" alt="练笔-1"/></a><div class="content"><a class="title" href="/2024/08/15/%E7%BB%83%E7%AC%94-1/" title="练笔-1">练笔-1</a><time datetime="2024-08-15T05:38:23.000Z" title="发表于 2024-08-15 13:38:23">2024-08-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/15/zjuter%E3%81%AE%E5%A4%A7%E5%AD%A6%E5%9B%9E%E5%BF%86%E5%BD%95/" title="zjuterの大学回忆录"><img src="/image/cover/4.jpg" onerror="this.onerror=null;this.src='/null'" alt="zjuterの大学回忆录"/></a><div class="content"><a class="title" href="/2024/08/15/zjuter%E3%81%AE%E5%A4%A7%E5%AD%A6%E5%9B%9E%E5%BF%86%E5%BD%95/" title="zjuterの大学回忆录">zjuterの大学回忆录</a><time datetime="2024-08-15T03:55:45.000Z" title="发表于 2024-08-15 11:55:45">2024-08-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2024 By gggaaallleee</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(() => {
+  const initGitalk = () => {
+    const gitalk = new Gitalk(Object.assign({
+      clientID: 'Ov23liUMbHiGICfbNd4j',
+      clientSecret: '5281db9b63173cdcf9b18621fb59192be51d8407',
+      repo: 'comment_blog',
+      owner: 'gggaaallleee',
+      admin: ['gggaaallleee'],
+      id: '0a635ea1d838f29773020754529afeb9',
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async() => {
+    if (typeof Gitalk === 'function') initGitalk()
+    else {
+      await getCSS('https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.css')
+      await getScript('https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.js')
+      initGitalk()
+    }
+  }
+  
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script src="/styles/fish.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+    function butterfly_categories_card_injector_config(){
+      var parent_div_git = document.getElementById('recent-posts');
+      var item_html = '<style>li.categoryBar-list-item{width:32.3%;}.categoryBar-list{max-height: 190px;overflow:auto;}.categoryBar-list::-webkit-scrollbar{width:0!important}@media screen and (max-width: 650px){.categoryBar-list{max-height: 160px;}}</style><div class="recent-post-item" style="height:auto;width:100%;padding:0px;"><div id="categoryBar"><ul class="categoryBar-list"><li class="categoryBar-list-item" style="background:url(https://npm.elemecdn.com/akilar-candyassets/image/cover1.webp);"> <a class="categoryBar-list-link" href="categories/学习/">学习</a><span class="categoryBar-list-count">2</span><span class="categoryBar-list-descr">小说</span></li><li class="categoryBar-list-item" style="background:url(https://npm.elemecdn.com/akilar-candyassets/image/cover2.webp);"> <a class="categoryBar-list-link" href="categories/生活/">生活</a><span class="categoryBar-list-count">1</span><span class="categoryBar-list-descr">生活</span></li><li class="categoryBar-list-item" style="background:url(https://npm.elemecdn.com/akilar-candyassets/image/cover3.webp);"> <a class="categoryBar-list-link" href="categories/小说/">小说</a><span class="categoryBar-list-count">1</span><span class="categoryBar-list-descr">学习</span></li></ul></div></div>';
+      console.log('已挂载butterfly_categories_card')
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+      }
+    if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    butterfly_categories_card_injector_config()
+    }
+  </script><!-- hexo injector body_end end --></body></html>
