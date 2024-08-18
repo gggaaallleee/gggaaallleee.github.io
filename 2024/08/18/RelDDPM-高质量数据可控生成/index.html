@@ -1,0 +1,576 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>RelDDPM-高质量数据可控生成 | 摸鱼端の秘密基地</title><meta name="author" content="gggaaallleee"><meta name="copyright" content="gggaaallleee"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="论文来源：https:&#x2F;&#x2F;doi.org&#x2F;10.1145&#x2F;3639283 问题背景 可控表格数据合成技术能够在多种场景下提供帮助，它使得用户可以根据自己设定的条件来生成数据。 例如，用户可以指定生成的数据中某些字段的值必须符合特定的要求（预定义属性值），或者生成的数据需要与另一个已有的数据表（外部表）在某种特征上存在一定关联性。 这种技术在数据保护、数据分析和机器学习等领域非常有用，因为它可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RelDDPM-高质量数据可控生成">
+<meta property="og:url" content="https://gggaaalleeee.top/2024/08/18/RelDDPM-%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E6%8E%A7%E7%94%9F%E6%88%90/index.html">
+<meta property="og:site_name" content="摸鱼端の秘密基地">
+<meta property="og:description" content="论文来源：https:&#x2F;&#x2F;doi.org&#x2F;10.1145&#x2F;3639283 问题背景 可控表格数据合成技术能够在多种场景下提供帮助，它使得用户可以根据自己设定的条件来生成数据。 例如，用户可以指定生成的数据中某些字段的值必须符合特定的要求（预定义属性值），或者生成的数据需要与另一个已有的数据表（外部表）在某种特征上存在一定关联性。 这种技术在数据保护、数据分析和机器学习等领域非常有用，因为它可以">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gggaaalleeee.top/image/cover/6.png">
+<meta property="article:published_time" content="2024-08-18T00:59:15.000Z">
+<meta property="article:modified_time" content="2024-08-18T09:28:49.662Z">
+<meta property="article:author" content="gggaaallleee">
+<meta property="article:tag" content="扩散模型">
+<meta property="article:tag" content="数据生成">
+<meta property="article:tag" content="表格">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gggaaalleeee.top/image/cover/6.png"><link rel="shortcut icon" href="/image/shark.png"><link rel="canonical" href="https://gggaaalleeee.top/2024/08/18/RelDDPM-%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E6%8E%A7%E7%94%9F%E6%88%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'RelDDPM-高质量数据可控生成',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-08-18 17:28:49'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-categories-card@1.0.0/lib/categorybar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (false) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/image/avatar.jpg" onerror="onerror=null;src='null'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/novel/"><i class="fa-fw fas fa-book"></i><span> 小说</span></a></li><li><a class="site-page child" href="/Roleplay/"><i class="fa-fw fas fa-cube"></i><span> 跑团</span></a></li><li><a class="site-page child" href="/math/"><i class="fa-fw fas fa-heart"></i><span> 数模</span></a></li><li><a class="site-page child" href="/project/"><i class="fa-fw fa fa-cogs"></i><span> 项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/image/cover/6.png')"><nav id="nav"><span id="blog-info"><a href="/" title="摸鱼端の秘密基地"><span class="site-name">摸鱼端の秘密基地</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/novel/"><i class="fa-fw fas fa-book"></i><span> 小说</span></a></li><li><a class="site-page child" href="/Roleplay/"><i class="fa-fw fas fa-cube"></i><span> 跑团</span></a></li><li><a class="site-page child" href="/math/"><i class="fa-fw fas fa-heart"></i><span> 数模</span></a></li><li><a class="site-page child" href="/project/"><i class="fa-fw fa fa-cogs"></i><span> 项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">RelDDPM-高质量数据可控生成</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-18T00:59:15.000Z" title="发表于 2024-08-18 08:59:15">2024-08-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-08-18T09:28:49.662Z" title="更新于 2024-08-18 17:28:49">2024-08-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0/">学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="RelDDPM-高质量数据可控生成"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>论文来源：https://doi.org/10.1145/3639283</p>
+<h1 id="问题背景">问题背景</h1>
+<p>可控表格数据合成技术能够在多种场景下提供帮助，它使得用户可以根据自己设定的条件来生成数据。 例如，用户可以指定生成的数据中某些字段的值必须符合特定的要求（预定义属性值），或者生成的数据需要与另一个已有的数据表（外部表）在某种特征上存在一定关联性。 这种技术在数据保护、数据分析和机器学习等领域非常有用，因为它可以在不泄露真实数据隐私的情况下，帮助研究人员和开发人员获得所需的数据样本。 而上述可控表格数据合成技术的功能可以总结为表内数据增强与表间数据增强两种形式的目的。</p>
+<h1 id="问题分析">问题分析</h1>
+<h2 id="对表格数据的分析">对表格数据的分析</h2>
+<p>表格数据是一种数据组织形式，它将信息排列在表格中，表格由行（记录）和列（字段）组成。每一列通常对应数据的一个属性或特征，比如人的姓名、年龄、地址等。每一行则代表一个数据实例或记录，包含了所有列属性的具体值。这种数据结构非常常见，易于查询和分析，因此被广泛应用于数据库、电子表格、数据科学和商业智能等领域。 下面给出的表格数据的一些共性，这些特性会影响之后可控表格数据合成技术的分析：</p>
+<ol type="1">
+<li>异质性：表格数据的异构性表现在其特征的多态性，涵盖了分类型、数值型、二元型以及文本型等不同特征类型。由此，特征的表现形式可以从密集的数值变量延伸至稀疏的或具有高类别数的分类变量。这意味着数据的生成需要考虑使用各种预处理技术，将不同数据通过归一化，合成或编码等手段进行处理，以提供给模型处理。</li>
+<li>稀疏性：稀疏性现象在现实世界的应用场景中普遍存在，例如在临床试验、流行病学研究、欺诈检测等领域，频繁遭遇类别标签的不均衡分布以及数据值的缺失，进而引致训练样本集中呈现长尾分布的特征。这意味着数据的生成应该倾向于对少数样本进行补充以达到相对平衡的结果。</li>
+<li>相关性：在表格数据的背景下，部分特征之间存在相关性。以人口统计数据为例，年龄、教育水平和酒精摄入量等因素相互交织：低龄群体获得博士学位的可能性较低，同时存在法定饮酒年龄下限。当回归模型纳入这些相关联的解释变量时，可能会导致估计系数的偏误。这意味着数据的生成需要对这些错综复杂的特征关系有所体现。</li>
+<li>顺序不变性：数据集中的样本和特征排列顺序的改变不会影响数据的本质属性。与文本和图像数据不同，后者数据的解读强烈依赖于单词、标记或像素的相对位置，表格数据对于排列顺序的变化表现出较高的鲁棒性。这意味着那些依赖于位置信息的方法，如空间相关性分析、归纳偏置的引入以及卷积神经网络等，在处理表格数据时其效用相对较低<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>。</li>
+<li>先验知识较少：在图像和音频数据领域，通常存在关于数据的空间或时间架构的先验信息，这些信息可以在模型训练过程中被利用以提升学习效果。相反，对于表格数据，此类先验知识通常较为稀缺，这增加了模型识别和理解特征间内在联系的难度。这意味着表格数据的学习任务往往面临着更高的挑战，特别是在揭示数据潜在结构和关系方面 <a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。</li>
+</ol>
+<h2 id="对当前表格数据生成方法的简述">对当前表格数据生成方法的简述</h2>
+<p>以“ Tabular data generation model ”为关键词从谷歌学术上检索后，目前主流的表格数据生成方法主要基于以下几种方法：</p>
+<ol type="1">
+<li>GAN： 利用生成对抗网络 GAN 给定生成器和判别器，生成器的目标是创造出尽可能接近真实数据分布的假数据，而判别器的任务是区分真实数据和生成器产生的假数据，而在 GAN 模型基础上控制生成数据的方法可以使用条件向量来指定要生成的特定特征值或类标注</li>
+<li>ARM： 通过学习数据序列的概率分布来有序且自回归直接生成新的数据，每个数据项的生成都是基于之前所有数据项的值，这意味着生成过程是有序的，并且每个数据项都依赖于之前的数据项。</li>
+<li>Diffusion Model： 处理后变成连续向量的表格数据可以被去噪概率扩散模型学习其分布，可以在生成过程中被条件引导，用于生成满足特定条件的合成数据。针对问题一的 RelDDPM 便属于该范畴。</li>
+<li>VAE： 用编码器将表格数据映射到潜在空间，学习数据的潜在表示，根据编码器输出的均值和方差，从标准正态分布中采样一个点，并通过重参数化技巧获得潜在空间的样本，然后使用解码器将潜在空间的样本映射回原始数据空间，得到重建的表格数据。</li>
+</ol>
+<h1 id="模型的建立">模型的建立</h1>
+<p>总体而言，问题一给出的 RelDDPM 方案可以概述为构建一个基于扩散模型的无条件生成模型和一个轻量级控制器来指导无条件生成模型生成满足不同条件的合成数据，具体示意图如下所示： <img src="/image/Relddpm/1.png" alt="RelDDPM模型示意图" /></p>
+<h2 id="扩散模块的介绍">扩散模块的介绍</h2>
+<p>总体而言，扩散模块的核心就是 DDPM。 去噪扩散概率模型（DDPM） 是经过训练以逐渐去除噪声数据的参数化马尔可夫链。最初 DDPM 使用于高质量的图像生成，其存在一个前向过程和一个逆向过程，其前向过程用于向图像添加高斯噪声，而在逆向过程中则逐渐去除这个高斯噪声。</p>
+<ul>
+<li><p>前向过程 于给定的初始数据分布<span class="math inline">\(x_0\)</span> ~ <span class="math inline">\(q(x)\)</span>，往其中逐步添加高斯噪声，持续 T 次，并产生一系列的噪声数据<span class="math inline">\(x_1,…,x_T\)</span>，具体过程如下公式所示：</p>
+<p><span class="math display">\[
+q(x_t|x_0)=\mathcal{N}(x_t;\sqrt{\bar{\alpha}_t}x_0,(1-\bar{\alpha}_t)I)
+\]</span></p>
+<p>其中，<span class="math inline">\(q(x_t|x_{t-1})\)</span> 表示在给定 <span class="math inline">\(x_{t-1}\)</span> 的条件下，<span class="math inline">\(x_t\)</span> 的概率分布，且在正向过程中，这个分布通常是高斯分布。同时，这里的<span class="math inline">\(N\)</span>表示正态分布，<span class="math inline">\(\sqrt{1-\beta_t}\)</span> 是 <span class="math inline">\(x_{t-1}\)</span> 的系数，<span class="math inline">\(β_t\)</span>是噪声比例参数并且在区间 <span class="math inline">\((0,1)\)</span> 内，<span class="math inline">\(I\)</span> 是单位矩阵。 接着，定义<span class="math inline">\(ε_t\)</span>为从标准正态分布 $N (0, I) $中采样的噪声，于是我们可以改写上式为 <span class="math inline">\(x_t = \sqrt{1 - \beta_t} \, x_{t-1} + \sqrt{\beta_t} \, \epsilon_t\)</span>，而在经过高斯函数叠加和重参数化的重复过程后，我们可以推导计算得到：</p>
+<p><span class="math display">\[
+q(x_t|x_0) = \mathcal{N}(x_t; \sqrt{\bar{\alpha}_t} x_0, (1 - \bar{\alpha}_t) I)
+\]</span></p>
+<p>其中， <span class="math inline">\(\alpha_t=1-\beta_t\)</span> ，而 <span class="math display">\[\bar{\alpha}_{t}=\prod_{t=1}^{T}\alpha_{t} \]</span> 同时，当 <span class="math inline">\(T\to\infty\)</span> 时，<span class="math inline">\(x_{T}\)</span> 将成为一个具有高斯分布的噪声。</p></li>
+<li><p>逆向过程 逆向过程，即从<span class="math inline">\(q(x_{t-1}\ |\ x_t)\)</span>中采样，就可以从一个随机的高斯分布<span class="math inline">\(\mathcal{N} (0, I)\)</span>中逐渐去噪重建出一个真实的原始样本<span class="math inline">\(x_0\)</span>，而<span class="math inline">\(x_0\)</span>就是具有目标数据分布的合成数据。 由于在前向过程中从前一时刻向后一时刻加入的是根据正态分布随机采样的噪声，因此从<span class="math inline">\(x_t\)</span>到<span class="math inline">\(x_{t-1}\)</span>也是一个难以预测的随机过程，但是可以通过贝叶斯公式大致地推测出给定<span class="math inline">\(x_t\)</span>条件下<span class="math inline">\(x_{t-1}\)</span>的概率分布：</p>
+<p><span class="math display">\[
+p_\theta(x_{t-1}\ |\ x_t)\ =\ \mathcal{N}(x_{t-1};\mu_\theta(x_t,t){,\left(\sqrt{\frac{\beta_t(1-{\bar{\alpha}}_{t-1})}{1-{\bar{\alpha}}_t}}\right)}^2)
+\]</span></p>
+<p>其中，<span class="math inline">\(\mu_\theta(x_t,t)\)</span>表示为模型预测的均值，<span class="math inline">\({,\left(\sqrt{\frac{\beta_t(1-{\bar{\alpha}}_{t-1})}{1-{\bar{\alpha}}_t}}\right)}^2\)</span>是模型预测的标准差，而<span class="math inline">\(\mu_\theta(x_t,t)\)</span>可以表示为：</p>
+<p><span class="math display">\[
+\mu_\theta(x_t,t)=\frac{\sqrt{a_t}(1-\bar{a}_{t-1})}{1-\bar{a}_t}x_t+\frac{\sqrt{\bar{a}_{t-1}}(1-a_t)}{1-\bar{a}_t}\times\frac{x_t-\sqrt{1-\bar{a}_t}\times\varepsilon}{\sqrt{\bar{a}_t}}\cdot
+\]</span></p>
+<p>其中，<span class="math inline">\(ε\)</span>是从一个标准正态分布中 &quot;随机抽取&quot; 的噪声样本，只有找到与正向过程一致或接近的随机采样噪声值（噪声的概率分布已推测出）才能顺利产生合成样本， 而<span class="math inline">\(ε\)</span>由神经网络模型进行学习输出，在参考文献中使用最小化回归损失去更新的参数。</p></li>
+</ul>
+<h2 id="控制器模块的介绍">控制器模块的介绍</h2>
+<p>总体而言，控制器模块就是通过学习原始关系表中的属性分布和关联模式，来合成既符合真实数据特性又满足特定条件的新的数据记录。 这个过程包括，先利用无条件扩散模型捕获整个数据表<span class="math inline">\(R\)</span>的无条件分布<span class="math inline">\(p(t)\)</span>，即不考虑任何额外条件下的属性值分布，然后基于给定的条件<span class="math inline">\(C\)</span>，如特定的属性值范围或关联属性的条件，捕获条件分布<span class="math inline">\(p(t|c)\)</span>，并利用控制器输出相关性满意度分数，以确保生成的每条记录不仅整体上看起来像是从原始表中抽取的，而且还要符合预定的条件，从而实现数据的可控合成。 其中， 条件<span class="math inline">\(C\)</span>的来源可以分为以下两类：</p>
+<ol type="1">
+<li>表内条件：<span class="math inline">\(C\)</span>是表<span class="math inline">\(R\)</span>中的一组属性，它确保生成的元组满足<span class="math inline">\(R\)</span>中指定属性的指定条件。</li>
+<li>表间条件：<span class="math inline">\(C\)</span>中的属性来自与表<span class="math inline">\(R\)</span>存在主键-外键引用关系的外部表，旨在确保生成的数据在这两个相关表之间保持期望的相关性。 同时，对于控制器而言，其目标是生成一个相关性满意度分数的方案<span class="math inline">\(Ctrl(t^{\prime},c)\)</span>，这意味着生成的元组<span class="math inline">\(t^{\prime}\)</span>应该尽可能地与条件实例<span class="math inline">\(c\)</span>相关。因此参考文献使用了利用两个编码器（分别编码生成的元组和条件实例）进行对比学习捕捉数据关键特征，并利用余弦相似度计算相似度。</li>
+</ol>
+<h2 id="控制器模块的技术原理">控制器模块的技术原理</h2>
+<p>首先对于条件<span class="math inline">\(C\)</span>而言，不管表内表间，就其目的，即捕获对应的条件概率分布<span class="math inline">\(p(t|c)\)</span>去从学习分布中采样合成元组，其本质都可以视作一个表内条件。 当控制器加入扩散模块时，利用条件独立性假设，有公式变化为：</p>
+<p><span class="math display">\[
+q(x*t\cdot|x*{t+1},x*c)\cdot=ZN(x_t;\mu*\theta(x*{t+1},t),\left(\sqrt{\frac{\beta_t(1-\bar{\alpha}\_t)}{1-\bar{\alpha}*{t+1}}}\right)^2)p(x_c|x_t)
+\]</span></p>
+<p>其中，<span class="math inline">\(q(x_t|x_{t+1},x_c)\)</span>是原始数据的逆向分布，学习的高斯模型<span class="math inline">\(p_{\theta}(x_{t}| x_{t+1})\)</span>则简化为<span class="math inline">\(p(x_c|x_t)\)</span>，<span class="math inline">\(Z\)</span>是归一化常量。 而在进一步推理过程中，参考文献将实例<span class="math inline">\(x_c\)</span>的逆向分布近似为扰动高斯分布，使用取对数的方式得到下述公式：</p>
+<p><span class="math display">\[
+q(x*t\cdot|x*{t+1},x*c)\cdot=ZN(x_t;\mu*\theta(x*{t+1},t)+\sigma_t\cdot g_t,\left(\sqrt{\frac{\beta_t(1-\bar{\alpha}\_t)}{1-\bar{\alpha}*{t+1}}}\right)^2)p(x_c|x_t)
+\]</span></p>
+<p>其中，<span class="math inline">\(σ_t\)</span>是一个可学习的或预设的标量，用于控制调整的强度，而梯度<span class="math inline">\(g_t=∇_(x_t ) Ctr1(x_t,c_i )\)</span>，这个梯度表示了为了满足条件<span class="math inline">\(c_i\)</span>，数据<span class="math inline">\(x_t\)</span>应该如何变化。 然后对于条件<span class="math inline">\(C\)</span>而言，参考文献基于编码后嵌入到联合分布空间的数据的两个元组如果高度相关，那么很可能在真实数据中共同出现的假设，使用余弦相似度作为控制器的相关性输出分数。 因此，整个过程可以表达为下述公式：</p>
+<p><span class="math display">\[
+Ctrl(\mathrm{x}_c,\mathrm{x}_t,t)=CosineSimilarity\left(E_c(\mathrm{x}_c),E_R(\mathrm{x}_t,t)\right)
+\]</span></p>
+<p>其中，<span class="math inline">\(E_c\)</span>和<span class="math inline">\(E_R\)</span>是两个编码器，<span class="math inline">\(E_c\)</span>用于条件实例的元组，<span class="math inline">\(E_R\)</span>用于要合成的表的元组，<span class="math inline">\(t∈[0，T]\)</span>和<span class="math inline">\(x_t\)</span>是从前向过程中采样的第<span class="math inline">\(t\)</span>个噪声数据<span class="math inline">\(q(x_t |x_0)\)</span>。</p>
+<h2 id="表格数据的预处理">表格数据的预处理</h2>
+<p>考虑到表格数据的异质性，需要将表格数据统一为扩散模型可以接受的可逆模拟比特编码技术，将表格数据转换为扩散器可以处理的连续表示。 下面给出模拟位编码面对表格数据的编码策略：</p>
+<ol type="1">
+<li>分类属性到序数整数的转换： 对于分类属性<span class="math inline">\(A_i\)</span>，从 0 开始分配序数，将数据转换为离散的数值属性。</li>
+<li>序数整数到二进制位的转换： 将每个 <span class="math inline">\(A_i\)</span> 的变量转换成二进制的向量，形式为 <span class="math inline">\(\{0,1\}^d\)</span>，其中 <span class="math inline">\(d = \log_2 |A_i|\)</span></li>
+<li>二进制位到实数的转换： 接着把这些二进制位转换为实数，用于连续扩散模型</li>
+<li>生成数据时的反转操作： 通过阈值操作反转回二进制位，进而反转为对应分类属性。</li>
+</ol>
+<h1 id="实验">实验</h1>
+<ul>
+<li>实验环境 镜像: PyTorch 2.1.0，Python 3.10(ubuntu22.04)，Cuda 12.1 GPU: RTX 3090(24GB) * 1 CPU: 14 vCPU Intel(R) Xeon(R) Platinum 8362 CPU @ 2.80GHz</li>
+<li>实验数据集 在此采用参考文献配套的数据集，其中有三个单表和三个复表：
+<ol type="1">
+<li>Default[5]包含有关信用卡客户的信息，包括人口统计因素、信用数据和付款违约状态。它是一个具有 30,000 个元组和 24 个属性的单个表。它通常用于预测客户是否会拖欠信用卡付款。数据集不平衡，多数类占 77.9%，少数类占 22.1%。</li>
+<li>shoppers[6]关注在线购物者的行为，并包含有关他们的浏览和购买活动的信息。它是一个具有 12,330 个元组和 18 个属性的单个表。它经常被用来预测购物者的购买意图。数据集是不平衡的，多数类占元组的 84.5%，少数类占 15.5%。</li>
+<li>WeatherAUS[7]是澳大利亚不同气象站跨越 10 年的每日天气观测的集合。我们关注的分类目标变量是“RainTomorrow”，它指示给定的一天是否下雨。数据集是不平衡的，多数(少数)类占元组的 78.0%(22.0%)。</li>
+<li>heart[8]是一个心脏病数据库，其中包含两个表：Patient 和 Cardio。Patient 表包括患者信息，而 Cardio 表包含 8 个心电指数。这两个表可以使用 Patient ID 连接，连接的结果有 14 个属性和 200,000 个元组。</li>
+<li>Airbnb[9]最初是从 Airbnb 数据库派生的住房信息的单一表格。我们遵循[27]将其正常化，以获得三个不同的表：房东表、邻居表和公寓表。这三个表的联接结果包含 26 个属性和 104,072 个元组</li>
+<li>IMDB[10]是从流行的 IMDB 数据库派生出来的。我们将其标准化以获得五个表。具体来说，我们将关于电影的表合并得到 Movie 表，并将原始的 Person 表分为 Director 和 Actor，这两个表可以分别通过 Movie_Actor 和 Movie_Director 与 Movie 表连接。</li>
+</ol></li>
+<li>实验评估指标 表内数据增强：F1score 表间数据增强：bias_reduction：评估给定属性的真实完整数据分布能够被恢复得多好 ； re_reduction: 通过数据补全过程，查询结果的相对误差</li>
+<li>模型参数</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>模块</th>
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>MLP 架构</strong></td>
+<td>隐藏层层数</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>神经元</td>
+<td>[512, 1024, 1024, 512]</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>激活函数</td>
+<td>ReLU</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Dropout</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<td><strong>MLPBlock 参数</strong></td>
+<td>线性层</td>
+<td>全连接层</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>激活函数</td>
+<td>ReLU</td>
+</tr>
+<tr class="odd">
+<td><strong>时间嵌入</strong></td>
+<td>SinTimeEmb 参数</td>
+<td>正弦时间嵌入层</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>激活函数</td>
+<td>SiLU</td>
+</tr>
+<tr class="odd">
+<td><strong>控制器模块编码器</strong></td>
+<td>隐藏层层数</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>神经元数量</td>
+<td>[512, 512]</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>激活函数</td>
+<td>ReLU</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Dropout</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<td><strong>训练参数</strong></td>
+<td>扩散模型学习率初始值</td>
+<td>0.0018</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>扩散模型学习率策略</td>
+<td>线性学习率退火</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>控制器学习率初始值</td>
+<td>0.001</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>控制器学习率策略</td>
+<td>线性学习率退火</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>扩散模型批量大小</td>
+<td>4096</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>控制器模型批量大小</td>
+<td>512</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>训练轮数</td>
+<td>30000</td>
+</tr>
+</tbody>
+</table>
+<h1 id="实验结果">实验结果</h1>
+<h2 id="表-1-表内数据增强实验结果">表 1 表内数据增强实验结果</h2>
+<table>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th>处理方法</th>
+<th>DT10</th>
+<th>DT30</th>
+<th>RF10</th>
+<th>RF20</th>
+<th>Adaboost</th>
+<th>LR</th>
+<th>MLP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Default</strong></td>
+<td>Identity</td>
+<td>0.433</td>
+<td>0.406</td>
+<td>0.445</td>
+<td>0.419</td>
+<td>0.444</td>
+<td>0.455</td>
+<td>0.487</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RelDDPM</td>
+<td>0.530</td>
+<td>0.444</td>
+<td>0.536</td>
+<td>0.531</td>
+<td>0.536</td>
+<td>0.530</td>
+<td>0.542</td>
+</tr>
+<tr class="odd">
+<td><strong>Shoppers</strong></td>
+<td>Identity</td>
+<td>0.606</td>
+<td>0.544</td>
+<td>0.535</td>
+<td>0.582</td>
+<td>0.598</td>
+<td>0.495</td>
+<td>0.660</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RelDDPM</td>
+<td>0.612</td>
+<td>0.570</td>
+<td>0.645</td>
+<td>0.653</td>
+<td>0.642</td>
+<td>0.661</td>
+<td>0.657</td>
+</tr>
+<tr class="odd">
+<td><strong>WeatherAUS</strong></td>
+<td>Identity</td>
+<td>0.591</td>
+<td>0.551</td>
+<td>0.563</td>
+<td>0.604</td>
+<td>0.611</td>
+<td>0.633</td>
+<td>0.673</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RelDDPM</td>
+<td>0.623</td>
+<td>0.578</td>
+<td>0.634</td>
+<td>0.647</td>
+<td>0.644</td>
+<td>0.658</td>
+<td>0.679</td>
+</tr>
+</tbody>
+</table>
+<h2 id="表-2-表间数据增强实验结果">表 2 表间数据增强实验结果</h2>
+<table>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th>bias_reduction</th>
+<th>re_reduction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>heart</td>
+<td>0.213</td>
+<td>0.799</td>
+</tr>
+<tr class="even">
+<td>imdb</td>
+<td>0.053</td>
+<td>0.545</td>
+</tr>
+<tr class="odd">
+<td>Airbnb</td>
+<td>0.302</td>
+<td>0.508</td>
+</tr>
+</tbody>
+</table>
+<p>从表 1 的结果可以看出，RelDDPM 在表内数据增强维度的效果较好，对下游分类模型的效果基本都有显著的提升。 从表 2 中可以看出表间数据增强中，RelDDPM 模型在查询中错误减少的平均值方面保持较高的水准，也在保持原本数据分布方面保持的效果较优秀</p>
+<h1 id="参考文献">参考文献</h1>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Vadim Borisov, Tobias Leemann, Kathrin Seßler, Johannes Haug, Martin Pawelczyk, and Gjergji Kasneci. Deep neural networks and tabular data: A survey. IEEE Transactions on Neural Networks and Learning Systems, 2022a.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>Vadim Borisov, Kathrin Seßler, Tobias Leemann, Martin Pawelczyk, and Gjergji Kasneci. Language models are realistic tabular data generators. In The Eleventh International Conference on Learning Representations, ICLR 2023, Kigali, Rwanda, May 1-5, 2023. OpenReview.net, 2023a. URL https://openreview.net/pdf?id=cEygmQNOeI.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+</ol>
+</section>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://gggaaalleeee.top">gggaaallleee</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://gggaaalleeee.top/2024/08/18/RelDDPM-%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E6%8E%A7%E7%94%9F%E6%88%90/">https://gggaaalleeee.top/2024/08/18/RelDDPM-%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E6%8E%A7%E7%94%9F%E6%88%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://gggaaalleeee.top" target="_blank">摸鱼端の秘密基地</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9E%8B/">扩散模型</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E7%94%9F%E6%88%90/">数据生成</a><a class="post-meta__tags" href="/tags/%E8%A1%A8%E6%A0%BC/">表格</a></div><div class="post_share"><div class="social-share" data-image="/image/cover/6.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/08/17/%E7%BB%83%E7%AC%94-2/" title="练笔-2"><img class="cover" src="/image/cover/5.png" onerror="onerror=null;src='/null'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">练笔-2</div></div></a></div></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/image/avatar.jpg" onerror="this.onerror=null;this.src='/null'" alt="avatar"/></div><div class="author-info__name">gggaaallleee</div><div class="author-info__description">阳和启蛰，天雨流芳</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/gggaaallleee" target="_blank" title="Github"><i class="fab fa-github" style="color: #hdhfbb;"></i></a><a class="social-icon" href="mailto:202103151406@zjut.edu.cn" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #000000;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">摸鱼好文明</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">问题背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">问题分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E8%A1%A8%E6%A0%BC%E6%95%B0%E6%8D%AE%E7%9A%84%E5%88%86%E6%9E%90"><span class="toc-number">2.1.</span> <span class="toc-text">对表格数据的分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E5%BD%93%E5%89%8D%E8%A1%A8%E6%A0%BC%E6%95%B0%E6%8D%AE%E7%94%9F%E6%88%90%E6%96%B9%E6%B3%95%E7%9A%84%E7%AE%80%E8%BF%B0"><span class="toc-number">2.2.</span> <span class="toc-text">对当前表格数据生成方法的简述</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="toc-number">3.</span> <span class="toc-text">模型的建立</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9D%97%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.1.</span> <span class="toc-text">扩散模块的介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E5%99%A8%E6%A8%A1%E5%9D%97%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.2.</span> <span class="toc-text">控制器模块的介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E5%99%A8%E6%A8%A1%E5%9D%97%E7%9A%84%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86"><span class="toc-number">3.3.</span> <span class="toc-text">控制器模块的技术原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A8%E6%A0%BC%E6%95%B0%E6%8D%AE%E7%9A%84%E9%A2%84%E5%A4%84%E7%90%86"><span class="toc-number">3.4.</span> <span class="toc-text">表格数据的预处理</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C"><span class="toc-number">4.</span> <span class="toc-text">实验</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">5.</span> <span class="toc-text">实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A8-1-%E8%A1%A8%E5%86%85%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">5.1.</span> <span class="toc-text">表 1 表内数据增强实验结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A8-2-%E8%A1%A8%E9%97%B4%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">5.2.</span> <span class="toc-text">表 2 表间数据增强实验结果</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">6.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/08/18/RelDDPM-%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E6%8E%A7%E7%94%9F%E6%88%90/" title="RelDDPM-高质量数据可控生成"><img src="/image/cover/6.png" onerror="this.onerror=null;this.src='/null'" alt="RelDDPM-高质量数据可控生成"/></a><div class="content"><a class="title" href="/2024/08/18/RelDDPM-%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E6%8E%A7%E7%94%9F%E6%88%90/" title="RelDDPM-高质量数据可控生成">RelDDPM-高质量数据可控生成</a><time datetime="2024-08-18T00:59:15.000Z" title="发表于 2024-08-18 08:59:15">2024-08-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/17/%E7%BB%83%E7%AC%94-2/" title="练笔-2"><img src="/image/cover/5.png" onerror="this.onerror=null;this.src='/null'" alt="练笔-2"/></a><div class="content"><a class="title" href="/2024/08/17/%E7%BB%83%E7%AC%94-2/" title="练笔-2">练笔-2</a><time datetime="2024-08-17T05:26:42.000Z" title="发表于 2024-08-17 13:26:42">2024-08-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/17/Fedavg/" title="联邦学习初见（二）"><img src="/image/cover/1.jpg" onerror="this.onerror=null;this.src='/null'" alt="联邦学习初见（二）"/></a><div class="content"><a class="title" href="/2024/08/17/Fedavg/" title="联邦学习初见（二）">联邦学习初见（二）</a><time datetime="2024-08-17T01:06:46.000Z" title="发表于 2024-08-17 09:06:46">2024-08-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/16/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0%E5%88%9D%E8%A7%81/" title="联邦学习初见（一）"><img src="/image/cover/3.png" onerror="this.onerror=null;this.src='/null'" alt="联邦学习初见（一）"/></a><div class="content"><a class="title" href="/2024/08/16/%E8%81%94%E9%82%A6%E5%AD%A6%E4%B9%A0%E5%88%9D%E8%A7%81/" title="联邦学习初见（一）">联邦学习初见（一）</a><time datetime="2024-08-16T02:31:43.000Z" title="发表于 2024-08-16 10:31:43">2024-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/15/%E7%BB%83%E7%AC%94-1/" title="练笔-1"><img src="/image/cover/2.png" onerror="this.onerror=null;this.src='/null'" alt="练笔-1"/></a><div class="content"><a class="title" href="/2024/08/15/%E7%BB%83%E7%AC%94-1/" title="练笔-1">练笔-1</a><time datetime="2024-08-15T05:38:23.000Z" title="发表于 2024-08-15 13:38:23">2024-08-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2024 By gggaaallleee</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.1
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, '']
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typesetPromise()
+}</script><script>(() => {
+  const initGitalk = () => {
+    const gitalk = new Gitalk(Object.assign({
+      clientID: 'Ov23liUMbHiGICfbNd4j',
+      clientSecret: '5281db9b63173cdcf9b18621fb59192be51d8407',
+      repo: 'comment_blog',
+      owner: 'gggaaallleee',
+      admin: ['gggaaallleee'],
+      id: '837cee2ef1116786d453563fdad02ddf',
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async() => {
+    if (typeof Gitalk === 'function') initGitalk()
+    else {
+      await getCSS('https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.css')
+      await getScript('https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.js')
+      initGitalk()
+    }
+  }
+  
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script src="/styles/fish.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+    function butterfly_categories_card_injector_config(){
+      var parent_div_git = document.getElementById('recent-posts');
+      var item_html = '<style>li.categoryBar-list-item{width:32.3%;}.categoryBar-list{max-height: 190px;overflow:auto;}.categoryBar-list::-webkit-scrollbar{width:0!important}@media screen and (max-width: 650px){.categoryBar-list{max-height: 160px;}}</style><div class="recent-post-item" style="height:auto;width:100%;padding:0px;"><div id="categoryBar"><ul class="categoryBar-list"><li class="categoryBar-list-item" style="background:url(https://npm.elemecdn.com/akilar-candyassets/image/cover1.webp);"> <a class="categoryBar-list-link" href="categories/学习/">学习</a><span class="categoryBar-list-count">3</span><span class="categoryBar-list-descr">小说</span></li><li class="categoryBar-list-item" style="background:url(https://npm.elemecdn.com/akilar-candyassets/image/cover2.webp);"> <a class="categoryBar-list-link" href="categories/生活/">生活</a><span class="categoryBar-list-count">1</span><span class="categoryBar-list-descr">生活</span></li><li class="categoryBar-list-item" style="background:url(https://npm.elemecdn.com/akilar-candyassets/image/cover3.webp);"> <a class="categoryBar-list-link" href="categories/小说/">小说</a><span class="categoryBar-list-count">2</span><span class="categoryBar-list-descr">学习</span></li></ul></div></div>';
+      console.log('已挂载butterfly_categories_card')
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+      }
+    if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    butterfly_categories_card_injector_config()
+    }
+  </script><!-- hexo injector body_end end --></body></html>
